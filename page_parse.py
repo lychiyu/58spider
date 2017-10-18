@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # 爬取并解析每一个商品的详情页的链接并存入mongo数据库
 
-import time
+import time, random
 import requests
 import pymongo
 from bs4 import BeautifulSoup
@@ -16,11 +16,26 @@ product = db['product']
 User_Agent = 'Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.103 Safari/537.36'
 headers = {
     'User-Agent': User_Agent,
+    'Connection': 'keep-alive',
 }
 
 
+proxy_list = [
+    'http://218.15.25.153:808',
+    'http://61.135.217.7:80',
+    'http://118.114.77.47:8080',
+    'http://121.31.100.24:8123',
+    'http://121.31.102.184:8123',
+    'http://61.178.238.122:63000',
+    'http://218.18.232.29:8080',
+    'http://110.73.10.163:1823',
+]
+proxy_ip = random.choice(proxy_list)
+proxies = {'http': proxy_ip}
+
+
 # 获取发布的商品详情页链接
-def get_detail_links(url, who, pagenum):
+def get_detail_links(url, pagenum, who=0):
     # http://bj.58.com/shouji/0/pn2
     real_url = '{}{}/pn{}/'.format(url, str(who), str(pagenum))
     res = requests.get(real_url, headers=headers)
@@ -60,6 +75,7 @@ def get_detail_links(url, who, pagenum):
             pass
 
 
+# 解析商品详情页
 def parse_detail_page(url):
     res = requests.get(url, headers=headers)
     soup = BeautifulSoup(res.text, 'lxml')
@@ -72,6 +88,7 @@ def parse_detail_page(url):
             title = soup.select('h1.info_titile')[0].text
             price = soup.select('span.price_now > i')[0].text
             area = soup.select('div.palce_li > span > i')[0].text.split('-')[1]
+            cate = soup.select('#nav > div > span:nth-of-type(2) > a')[0].text
             # 存入数据库
             product.insert_one({'title': title, 'price': price, 'area': area})
             print(title, price, area)
