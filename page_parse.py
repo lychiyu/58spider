@@ -19,29 +19,8 @@ headers = {
 }
 
 
-# 获取个人发布的商品详情页链接就是转转的链接
-def get_personal_links(url, pagenum):
-    # http://bj.58.com/shouji/0/pn2
-    url = '{}0/pn{}/'.format(url, str(pagenum))
-    res = requests.get(url, headers=headers)
-    soup = BeautifulSoup(res.text, 'lxml')
-
-    # 判断是否有内容
-    if soup.find('td', 't'):
-        links = soup.select('tr.zzinfo > td.t > a')
-        for link in links:
-            link = link.get('href')
-            if link.find('zhuan') >= 0:
-                link = link.split('?')[0]
-                # 存入数据库中
-                urllist.insert_one({'url': link})
-                print(link)
-    else:
-        pass
-
-
-# 获取商家发布的商品详情页链接就是转转的链接
-def get_personal_links(url, who, pagenum):
+# 获取发布的商品详情页链接
+def get_detail_links(url, who, pagenum):
     # http://bj.58.com/shouji/0/pn2
     real_url = '{}{}/pn{}/'.format(url, str(who), str(pagenum))
     res = requests.get(real_url, headers=headers)
@@ -81,7 +60,7 @@ def get_personal_links(url, who, pagenum):
             pass
 
 
-def get_detail(url):
+def parse_detail_page(url):
     res = requests.get(url, headers=headers)
     soup = BeautifulSoup(res.text, 'lxml')
     # 解析转转商品详情页页面
